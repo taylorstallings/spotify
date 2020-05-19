@@ -82,4 +82,61 @@ track_num_artist %>%
       between(n, 20, 49) ~ '20~49 tracks',
       TRUE ~ 'Less than 20 tracks'
     )
-  )
+) %>%
+  # To avoid mess up the order of frequency group, I always suggest to convert the category variables as factor variables, with built-in order, levels.
+  mutate(freq = factor(
+    freq,
+    levels = c(
+      'More than 100 tracks',
+      '50~99 tracks',
+      '20~49 tracks',
+      'Less than 20 tracks'
+    )
+  )) %>%
+  ggplot(mapping = aes(
+    x = reorder(name, -n),
+    y = n,
+    fill = freq
+  )) +
+  geom_col() +
+  labs(fill = NULL,title = 'Who is My Favorite Artist',caption = 'data from spotify via spotiyr') +
+  xlab('Artist') +
+  ylab('Tracks Number') +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = -60),
+        axis.title = element_text(face = 'bold'),
+        plot.title = element_text(hjust = 0.5, face = 'bold', size = 15),
+        plot.caption = element_text(hjust = 1,face = 'bold.italic'))
+
+
+
+if(!file.exists('audio_features.rds')){
+  track_num_artist$name %>%
+    map(function(x){
+      get_artist_audio_features(x)
+    }) %>%
+    reduce(rbind) %>%
+    inner_join(all_my_fav_tracks,
+               by = c('track_id' = 'track.id')) %>%
+    write_rds('audio_features.rds')
+}
+
+audio_features <- read_rds('audio_features.rds')
+
+ggplot(data = audio_features, aes(x = valence, y = energy, color = artist_name)) +
+  geom_jitter() +
+  geom_vline(xintercept = 0.5) +
+  geom_hline(yintercept = 0.5) +
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 1)) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +
+  annotate('text', 0.25 / 2, 0.95, label = "Turbulent/Angry", fontface =
+             "bold") +
+  annotate('text', 1.75 / 2, 0.95, label = "Happy/Joyful", fontface = "bold") +
+  annotate('text', 1.75 / 2, 0.05, label = "Chill/Peaceful", fontface =
+             "bold") +
+  annotate('text', 0.25 / 2, 0.05, label = "Sad/Depressing", fontface =
+             "bold")
+
+
+
+
