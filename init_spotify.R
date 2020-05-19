@@ -60,3 +60,26 @@ artist_from_fav_tracks <-
 
 artist_from_fav_tracks
 
+track_num_artist <-
+  artist_from_fav_tracks %>%
+  count(id, sort = TRUE) %>%
+  left_join(artist_from_fav_tracks, by = 'id',.) %>%
+  unique() %>%
+  select(-id) %>%
+  top_n(20, n)
+
+track_num_artist  %>%
+  kable()
+
+
+
+# For numerical variables, sometimes for simplifying problems, cut them into fractions is a good idea. Here,  go further and fill the column plot with different color to represent different frequency group.
+track_num_artist %>%
+  mutate(
+    freq = case_when(
+      n > 100 ~ 'More than 100 tracks',
+      between(n, 50, 99) ~ '50~99 tracks',
+      between(n, 20, 49) ~ '20~49 tracks',
+      TRUE ~ 'Less than 20 tracks'
+    )
+  )
