@@ -83,7 +83,7 @@ track_num_artist %>%
       TRUE ~ 'Less than 20 tracks'
     )
 ) %>%
-  # To avoid mess up the order of frequency group, I always suggest to convert the category variables as factor variables, with built-in order, levels.
+  # To avoid mess up the order of frequency group, I always convert the category variables as factor variables, with built-in order, levels.
   mutate(freq = factor(
     freq,
     levels = c(
@@ -129,13 +129,78 @@ ggplot(data = audio_features, aes(x = valence, y = energy, color = artist_name))
   geom_hline(yintercept = 0.5) +
   scale_x_continuous(expand = c(0, 0), limits = c(0, 1)) +
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +
-  annotate('text', 0.25 / 2, 0.95, label = "Turbulent/Angry", fontface =
+  annotate('text', 0.25 / 2, 0.95, label = "Angry", fontface =
              "bold") +
-  annotate('text', 1.75 / 2, 0.95, label = "Happy/Joyful", fontface = "bold") +
-  annotate('text', 1.75 / 2, 0.05, label = "Chill/Peaceful", fontface =
+  annotate('text', 1.75 / 2, 0.95, label = "Joyful", fontface = "bold") +
+  annotate('text', 1.75 / 2, 0.05, label = "Peaceful", fontface =
              "bold") +
-  annotate('text', 0.25 / 2, 0.05, label = "Sad/Depressing", fontface =
+  annotate('text', 0.25 / 2, 0.05, label = "Sad", fontface =
              "bold")
+
+my_id <- '1247910016'
+my_plists <- get_user_playlists(my_id)
+
+my_plists
+
+my_plists2 <- my_plists %>%
+  filter(name %in% c('the melting pot'))
+
+my_plists2
+
+
+tracks <- get_playlist_tracks('1aszbjucZy0mjaAJLKJKcd')
+tracks <- get_playlist_tracks('1aszbjucZy0mjaAJLKJKcd')
+features <- get_track_audio_analysis(tracks, access_token)
+
+tracks
+features
+
+coldplay <- get_artist_audio_features('the beatles')
+top <- get_artist_audio_features('twenty one pilots')
+mrtape <- get_artist_audio_features('mister tape')
+
+top %>% 
+  count(key_mode, sort = TRUE) %>% 
+  head(5) %>% 
+  kable()
+
+get_my_recently_played(limit = 50) %>% 
+  mutate(artist.name = map_chr(track.artists, function(x) x$name[1]),
+         played_at = as_datetime(played_at)) %>% 
+  select(track.name, artist.name, track.album.name, played_at) %>% 
+  kable()
+
+get_my_top_artists_or_tracks(type = 'artists', time_range = 'long_term', limit = 5) %>% 
+  select(name, genres) %>% 
+  rowwise %>% 
+  mutate(genres = paste(genres, collapse = ', ')) %>% 
+  ungroup %>% 
+  kable()
+
+
+joy <- get_artist_audio_features('twenty one pilots')
+joy %>% 
+  arrange(-valence) %>% 
+  select(track_name, valence) %>% 
+  head(150) %>% 
+  kable()
+
+get_my_top_artists_or_tracks(type = 'artists', time_range = 'long_term', limit = 5) %>% 
+  select(name, genres) %>% 
+  rowwise %>% 
+  mutate(genres = paste(genres, collapse = ', ')) %>% 
+  ungroup %>% 
+  kable()
+
+get_my_top_artists_or_tracks(type = 'tracks', time_range = 'short_term', limit = 5) %>% 
+  mutate(artist.name = map_chr(artists, function(x) x$name[1])) %>% 
+  select(name, artist.name, album.name) %>% 
+  kable()
+
+ggplot(joy, aes(x = valence, y = album_name)) + 
+  geom_joy() + 
+  theme_joy() +
+  ggtitle("Joyplot of The Avett Brothers joy distributions", subtitle = "Based on valence pulled from Spotify's Web API with spotifyr")
 
 
 
